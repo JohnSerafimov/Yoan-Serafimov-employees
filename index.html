@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+table {
+    font-family: arial, sans-serif;
+    border-collapse: collapse;
+    width: 100%;
+}
+
+td, th {
+    border: 1px solid #dddddd;
+    text-align: left;
+    padding: 8px;
+}
+
+tr:nth-child(even) {
+    background-color: #dddddd;
+}
+</style>
+</head>
+<body>
+
+<p>Click the button to display longest duo to work together.</p>
+
+
+
+<input type="file" name="file" id="file">
+
+<button onclick="myFunction()">Calculate</button>
+
+<table>
+	<tr>
+		<th>Employee</th>
+		<th>Employee</th>
+		<th>Days</th>	
+		<th>Project</th>
+	</tr>
+	<tr>
+		<td id="user1"></td>
+		<td id="user2"></td>
+		<td id="projectID"></td>	
+		<td id="longest"></td>
+	</tr>
+</table>
+
+<script>
+
+var project = []
+
+//Reading uploaded file
+document.getElementById('file').onchange = function(){
+  project = [];
+  var file = this.files[0];
+
+  //Breaking down each line in one array
+  var reader = new FileReader();
+  reader.onload = function(progressEvent){
+    var lines = this.result.split('\n');
+	
+	//Breaking down each element into it's own array into the main array
+    for(var line = 0; line < lines.length; line++){
+		var info = lines[line].split(',');
+		project.push(info);
+
+	}
+	
+  };
+  reader.readAsText(file);
+
+};
+
+
+
+// Calculating Function that actives once the button is pressed.
+function myFunction() {
+
+//Defining Employee 1/2, projects worked on.
+var user1 = 0;
+var user2 = 0;
+var projectID = 0;
+
+//Storing longest time two employees that worked together (row 114).
+var longest = 0;
+
+//Avoiding duplicates (row 132).
+let pastThrough = []
+
+//Looping throuh the Main Array
+for (var x = 0; x < project.length; x++){
+  //Looping throuh the Main Array a second time.
+  for (var y = 0; y < project.length; y++) {
+    //Checking that we are not in the same array.
+    if (x != y){
+	  //Checking if projects are identical.
+      if (project[x][1] == project[y][1] && !pastThrough.includes(y)) {
+	  
+		//Parsing through to check if Date == NULL.
+		var nullTry1 = Date.parse(project[x][3]);
+		var nullTry2 = Date.parse(project[y][3]);
+		//If Date == NULL it will return NaN and in that case we set NULL to today's date.
+		if (isNaN(nullTry1)){
+			project[x][3] = new Date();
+		}
+		if (isNaN(nullTry2)){
+			project[y][3] = new Date();
+		}
+		//Checking if employees have worked together at the same time
+		if (Date.parse(project[x][3]) >= Date.parse(project[y][2]) && Date.parse(project[x][2]) <= Date.parse(project[y][3])) {
+			//To determin how long a employee has worked on this project, we simply substract the End date by the Start date.
+			var startDate1 = Date.parse(project[x][3]) - Date.parse(project[x][2]);
+			var startDate2 = Date.parse(project[y][3]) - Date.parse(project[y][2]);
+
+			//Then we check if the first employee has worked longer than the second on the current project
+			// and if our variable 'longest' is less than the second employee
+			if (startDate1 >  startDate2 && longest < startDate2){
+				//If the above shows 'True' we set 'longest' to equal to the second employee's time on this project.
+				//(because the employee worked less on this project, in that case they only worked that time together)
+				longest = startDate2
+				user1 = project[x][0]
+				user2 = project[y][0]
+				projectID = project[y][1];
+            //Checking and doing the same thing as above, but in a reverse way.
+			} else if (startDate2 >=  startDate1 && longest < startDate1)  {
+				longest = startDate1
+				user1 = project[x][0]
+				user2 = project[y][0]
+				projectID = project[y][1];
+			}
+		}
+      }
+	  //Here we push 'x' into 'passThrough' to be sure we do not have duplicated checks.
+      pastThrough.push(x)
+
+    }
+
+  }
+
+}
+//Displaying details
+document.getElementById("user1").innerHTML = user1;
+document.getElementById("user2").innerHTML = user2;
+document.getElementById("projectID").innerHTML = Math.round(longest / 24 / 60 / 60 / 1000);
+document.getElementById("longest").innerHTML = projectID;
+}
+</script>
+
+</body>
+</html>
