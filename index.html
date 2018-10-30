@@ -9,13 +9,11 @@ table {
     border-collapse: collapse;
     width: 100%;
 }
-
 td, th {
     border: 1px solid #dddddd;
     text-align: left;
     padding: 8px;
 }
-
 tr:nth-child(even) {
     background-color: #dddddd;
 }
@@ -37,24 +35,24 @@ tr:nth-child(even) {
 		<th>Employee ID #2</th>
 		<th>Project ID</th>	
 		<th>Days worked</th>
+		<th>Periods</th>
 	</tr>
 	<tr>
 		<td id="user1"></td>
 		<td id="user2"></td>
 		<td id="projectID"></td>	
 		<td id="longest"></td>
+		<td id="timePeriods"></td>
+
 	</tr>
 </table>
 
 <script>
-
 var project = []
-
 //Reading uploaded file
 document.getElementById('file').onchange = function(){
   project = [];
   var file = this.files[0];
-
   //Breaking down each line in one array
   var reader = new FileReader();
   reader.onload = function(progressEvent){
@@ -64,16 +62,11 @@ document.getElementById('file').onchange = function(){
     for(var line = 0; line < lines.length; line++){
 		var info = lines[line].split(',');
 		project.push(info);
-
 	}
 	
   };
   reader.readAsText(file);
-
 };
-
-
-
 // Calculating Function that actives once the button is pressed.
 function myFunction() {
 
@@ -84,22 +77,28 @@ var projectID = 0;
 
 //Storing longest time two employees that worked together (row 114).
 var longest = 0;
+var timePeriods = "";
 
 //Avoiding duplicates (row 132).
-let pastThrough = []
+var pastThrough = [];
+var sameTeam = [];
 
-//Looping throuh the Main Array
+//Looping through the Main Array
 for (var x = 0; x < project.length; x++){
-  //Looping throuh the Main Array a second time.
+
+  //Looping through the Main Array a second time.
   for (var y = 0; y < project.length; y++) {
+  
     //Checking that we are not in the same array.
     if (x != y){
+	
 	  //Checking if projects are identical.
       if (project[x][1] == project[y][1] && !pastThrough.includes(y)) {
 	  
 		//Parsing through to check if Date == NULL.
 		var nullTry1 = Date.parse(project[x][3]);
 		var nullTry2 = Date.parse(project[y][3]);
+		
 		//If Date == NULL it will return NaN and in that case we set NULL to today's date.
 		if (isNaN(nullTry1)){
 			project[x][3] = new Date();
@@ -109,41 +108,85 @@ for (var x = 0; x < project.length; x++){
 		}
 		//Checking if employees have worked together at the same time
 		if (Date.parse(project[x][3]) >= Date.parse(project[y][2]) && Date.parse(project[x][2]) <= Date.parse(project[y][3])) {
-			//To determin how long a employee has worked on this project, we simply substract the End date by the Start date.
+		
+			//To determine how long a employee has worked on this project, we simply subtract the End date by the Start date.
 			var startDate1 = Date.parse(project[x][3]) - Date.parse(project[x][2]);
 			var startDate2 = Date.parse(project[y][3]) - Date.parse(project[y][2]);
+			
+			//Checking when both employees started to work together in this time-line and when they stopped
+			var fromDate = "";
+			var toDate = "";
+			if (Date.parse(project[x][2]) < Date.parse(project[y][2])) {
+				fromDate = project[y][2]
+			} else {
+				fromDate = project[x][2]
+			}
+			if (Date.parse(project[x][3]) < Date.parse(project[y][3])) {
+				toDate = project[x][3]
+			} else {
+				toDate = project[y][3]
+			}
+			
+			//This setup is activated only if we encounter the same team of employees and it adds to their total amount of time working together
+			//Also adds the time period
+			if (sameTeam.includes(project[x][0]) && sameTeam.includes(project[y][0]) && projectID == project[x][1]) {
+				if (startDate1 >  startDate2){
+					longest += startDate2
+					timePeriods += "<br/>" + fromDate + " = " + toDate
 
+
+				} else if (startDate2 >=  startDate1)  {
+					longest += startDate1
+					timePeriods += "<br/>" + fromDate + " = " + toDate
+				}
+			}
+			else {
 			//Then we check if the first employee has worked longer than the second on the current project
 			// and if our variable 'longest' is less than the second employee
-			if (startDate1 >  startDate2 && longest < startDate2){
-				//If the above shows 'True' we set 'longest' to equal to the second employee's time on this project.
-				//(because the employee worked less on this project, in that case they only worked that time together)
-				longest = startDate2
-				user1 = project[x][0]
-				user2 = project[y][0]
-				projectID = project[y][1];
-            //Checking and doing the same thing as above, but in a reverse way.
-			} else if (startDate2 >=  startDate1 && longest < startDate1)  {
-				longest = startDate1
-				user1 = project[x][0]
-				user2 = project[y][0]
-				projectID = project[y][1];
+				if (startDate1 >  startDate2 && longest < startDate2){
+		
+					//If the above shows 'True' we set 'longest' to equal to the second employee's time on this project.
+					//(because the employee worked less on this project, in that case they only worked that time together)
+					longest = startDate2
+					user1 = project[x][0]
+					user2 = project[y][0]
+					projectID = project[y][1];
+					
+					//Setting a check for if we encounter the same employees again
+					sameTeam = [];
+					sameTeam.push(project[x][0])
+					sameTeam.push(project[y][0])
+					//Adding the current longest time Period of two employees
+					timePeriods = fromDate + " = " + toDate
+				
+				//Checking and doing the same thing as above, but in a reverse way.
+				} else if (startDate2 >=  startDate1 && longest < startDate1)  {
+					longest = startDate1
+					user1 = project[x][0]
+					user2 = project[y][0]
+					projectID = project[y][1];
+					sameTeam = [];
+					sameTeam.push(project[x][0])
+					sameTeam.push(project[y][0])
+					timePeriods = fromDate + " = " + toDate
+				}
+				
 			}
+
+			
 		}
       }
 	  //Here we push 'x' into 'passThrough' to be sure we do not have duplicated checks.
       pastThrough.push(x)
-
     }
-
   }
-
 }
 //Displaying details
 document.getElementById("user1").innerHTML = user1;
 document.getElementById("user2").innerHTML = user2;
 document.getElementById("projectID").innerHTML = projectID;
 document.getElementById("longest").innerHTML = Math.round(longest / 24 / 60 / 60 / 1000);
+document.getElementById("timePeriods").innerHTML = timePeriods;
 }
 </script>
 
