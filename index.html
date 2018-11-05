@@ -75,12 +75,14 @@ var user1 = 0;
 var user2 = 0;
 var projectID = 0;
 
-//Storing longest time two employees that worked together (row 114).
+//Storing longest time two employees that worked together (row 137/154).
 var longest = 0;
+//Storing longest team's time worked together.(row 143/176)
 var mainTime = 0;
+//Storing periods
 var timePeriods = "";
 
-//Avoiding duplicates (row 132).
+//Avoiding duplicates (row 137).
 var pastThrough = [];
 var sameTeam = [];
 var sameProject = 0;
@@ -138,6 +140,8 @@ for (var x = 0; x < project.length; x++){
 				} else if (startDate2 >=  startDate1)  {
 					longest += startDate1
 				}
+				//Checking if longest time so far is less than current longest time
+				//If 'True' then we set team's information
 				if (mainTime < longest) {
 					mainTime = longest
 					user1 = project[x][0]
@@ -171,19 +175,21 @@ for (var x = 0; x < project.length; x++){
 					sameTeam.push(project[y][0])
 
 				}
+				//Checking if longest time so far is less than current longest time
+				//If 'True' then we set team's information
 				if (mainTime < longest) {
 					mainTime = longest
 					user1 = project[x][0]
 					user2 = project[y][0]
 					projectID = project[y][1];
 					timePeriods = fromDate + " = " + toDate
-        }
+        			}
 				
 			}
 		}
       }
-	  //Here we push 'x' into 'passThrough' to be sure we do not have duplicated checks.
-      pastThrough.push(x)
+	//Here we push 'x' into 'passThrough' to be sure we do not have duplicated checks.
+        pastThrough.push(x)
     }
   }
 }
