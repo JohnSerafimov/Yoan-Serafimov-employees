@@ -77,11 +77,13 @@ var projectID = 0;
 
 //Storing longest time two employees that worked together (row 114).
 var longest = 0;
+var mainTime = 0;
 var timePeriods = "";
 
 //Avoiding duplicates (row 132).
 var pastThrough = [];
 var sameTeam = [];
+var sameProject = 0;
 
 //Looping through the Main Array
 for (var x = 0; x < project.length; x++){
@@ -95,85 +97,89 @@ for (var x = 0; x < project.length; x++){
 	  //Checking if projects are identical.
       if (project[x][1] == project[y][1] && !pastThrough.includes(y)) {
 	  
-		//Parsing through to check if Date == NULL.
-		var nullTry1 = Date.parse(project[x][3]);
-		var nullTry2 = Date.parse(project[y][3]);
+		    //Parsing through to check if Date == NULL.
+		    var nullTry1 = Date.parse(project[x][3]);
+		    var nullTry2 = Date.parse(project[y][3]);
 		
-		//If Date == NULL it will return NaN and in that case we set NULL to today's date.
-		if (isNaN(nullTry1)){
-			project[x][3] = new Date();
-		}
-		if (isNaN(nullTry2)){
-			project[y][3] = new Date();
-		}
-		//Checking if employees have worked together at the same time
-		if (Date.parse(project[x][3]) >= Date.parse(project[y][2]) && Date.parse(project[x][2]) <= Date.parse(project[y][3])) {
-		
-			//To determine how long a employee has worked on this project, we simply subtract the End date by the Start date.
-			var startDate1 = Date.parse(project[x][3]) - Date.parse(project[x][2]);
-			var startDate2 = Date.parse(project[y][3]) - Date.parse(project[y][2]);
+		    //If Date == NULL it will return NaN and in that case we set NULL to today's date.
+		    if (isNaN(nullTry1)){
+			    project[x][3] = new Date();
+		    }
+		    if (isNaN(nullTry2)){
+		    	project[y][3] = new Date();
+		    }
+		    //Checking if employees have worked together at the same time
+		    if (Date.parse(project[x][3]) >= Date.parse(project[y][2]) && Date.parse(project[x][2]) <= Date.parse(project[y][3])) {
 			
-			//Checking when both employees started to work together in this time-line and when they stopped
-			var fromDate = "";
-			var toDate = "";
-			if (Date.parse(project[x][2]) < Date.parse(project[y][2])) {
-				fromDate = project[y][2]
-			} else {
-				fromDate = project[x][2]
-			}
-			if (Date.parse(project[x][3]) < Date.parse(project[y][3])) {
-				toDate = project[x][3]
-			} else {
-				toDate = project[y][3]
-			}
+			
+			    //To determine how long a employee has worked on this project, we simply subtract the End date by the Start date.
+			    var startDate1 = Date.parse(project[x][3]) - Date.parse(project[x][2]);
+			    var startDate2 = Date.parse(project[y][3]) - Date.parse(project[y][2]);
+			
+			    //Checking when both employees started to work together in this time-line and when they stopped
+			    var fromDate = "";
+			    var toDate = "";
+			    if (Date.parse(project[x][2]) < Date.parse(project[y][2])) {
+			      	fromDate = project[y][2]
+			    } else {
+			      	fromDate = project[x][2]
+		    	}
+			    if (Date.parse(project[x][3]) < Date.parse(project[y][3])) {
+			      	toDate = project[x][3]
+		    	} else {
+			      	toDate = project[y][3]
+		    	}
 			
 			//This setup is activated only if we encounter the same team of employees and it adds to their total amount of time working together
 			//Also adds the time period
-			if (sameTeam.includes(project[x][0]) && sameTeam.includes(project[y][0]) && projectID == project[x][1]) {
+			if (sameTeam.includes(project[x][0]) && sameTeam.includes(project[y][0]) && sameProject == project[x][1]) {
 				if (startDate1 >  startDate2){
 					longest += startDate2
-					timePeriods += "<br/>" + fromDate + " = " + toDate
-
-
 				} else if (startDate2 >=  startDate1)  {
 					longest += startDate1
+				}
+				if (mainTime < longest) {
+					mainTime = longest
+					user1 = project[x][0]
+					user2 = project[y][0]
+					projectID = project[y][1];
 					timePeriods += "<br/>" + fromDate + " = " + toDate
 				}
 			}
 			else {
 			//Then we check if the first employee has worked longer than the second on the current project
 			// and if our variable 'longest' is less than the second employee
-				if (startDate1 >  startDate2 && longest < startDate2){
+				if (startDate1 >  startDate2){
 		
 					//If the above shows 'True' we set 'longest' to equal to the second employee's time on this project.
 					//(because the employee worked less on this project, in that case they only worked that time together)
 					longest = startDate2
-					user1 = project[x][0]
-					user2 = project[y][0]
-					projectID = project[y][1];
-					
+
 					//Setting a check for if we encounter the same employees again
+					sameProject = project[x][1]
 					sameTeam = [];
 					sameTeam.push(project[x][0])
 					sameTeam.push(project[y][0])
-					//Adding the current longest time Period of two employees
-					timePeriods = fromDate + " = " + toDate
+
 				
 				//Checking and doing the same thing as above, but in a reverse way.
-				} else if (startDate2 >=  startDate1 && longest < startDate1)  {
+				} else if (startDate2 >=  startDate1)  {
 					longest = startDate1
-					user1 = project[x][0]
-					user2 = project[y][0]
-					projectID = project[y][1];
+					sameProject = project[x][1]
 					sameTeam = [];
 					sameTeam.push(project[x][0])
 					sameTeam.push(project[y][0])
-					timePeriods = fromDate + " = " + toDate
+
 				}
+				if (mainTime < longest) {
+					mainTime = longest
+					user1 = project[x][0]
+					user2 = project[y][0]
+					projectID = project[y][1];
+					timePeriods = fromDate + " = " + toDate
+        }
 				
 			}
-
-			
 		}
       }
 	  //Here we push 'x' into 'passThrough' to be sure we do not have duplicated checks.
@@ -185,7 +191,7 @@ for (var x = 0; x < project.length; x++){
 document.getElementById("user1").innerHTML = user1;
 document.getElementById("user2").innerHTML = user2;
 document.getElementById("projectID").innerHTML = projectID;
-document.getElementById("longest").innerHTML = Math.round(longest / 24 / 60 / 60 / 1000);
+document.getElementById("longest").innerHTML = Math.round(mainTime / 24 / 60 / 60 / 1000);
 document.getElementById("timePeriods").innerHTML = timePeriods;
 }
 </script>
